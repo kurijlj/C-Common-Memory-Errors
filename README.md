@@ -1,33 +1,53 @@
-# C-Cmake-CLI-Framework
+# C-Common-Memory-Errors
 
-The C-Cmake-CLI-Framework is a comprehensive CMake project template designed to
-simplify the development process for C projects that utilize a command-line
-interface (CLI) and integrate with third-party libraries. This framework offers
-the following features:
+This project is my personal journey through the Udemy course "Fixing Memory Bugs
+in C," serving as a hands-on companion to solidify the learnings. It delves deep
+into the world of common memory errors encountered in C programming.
 
-- **Cross-Platform Support:** The framework is designed to work seamlessly
-across various operating systems, including Windows and UNIX-like environments.
-- **Multiple Generator and Compiler Compatibility:** The project aims to be
-compatible with different CMake generators and compilers, allowing for
-flexibility in your development environment.
-- **Third-Paty Library Integration:** The framework supports integration of
-third-party libraries either as git submodules or via CMake's FetchContent.
-- **Simplified CLI Integration:** The framework offers mechanisms to simplify
-the integration of CLI functionalities into your C++ project.
+It serves as a learning resource to understand how these errors manifest, their
+impact on program behavior, and how to identify and prevent them.
+
+We'll explore a range of memory-related pitfalls C programmers face, including:
+
+1. **Uninitialized Values:** Accessing memory that hasn't been assigned a value
+   can lead to unpredictable behavior and crashes. We'll see how this happens
+   and how to avoid it.
+2. **Invalid Reads:** Reading from memory locations that are out of bounds or
+   not allocated can corrupt data and cause program instability. We'll
+   demonstrate this scenario and explore techniques to prevent it.
+3. **Invalid Writes:** Writing to unintended memory locations can overwrite
+   critical data and cause unexpected program behavior. We'll investigate this
+   error and ways to mitigate it.
+4. **Invalid Frees:** Attempting to free memory that hasn't been allocated or
+   has already been freed can lead to crashes and memory corruption. We'll delve
+   into this issue and proper memory management practices.
+5. **Fishy Values:** Sometimes, seemingly valid values can indicate underlying
+   memory issues. We'll explore how to identify these "fishy values" and
+   diagnose potential memory problems.
+6. **Memory Leaks:** Memory leaks occur when allocated memory isn't freed when
+   it's no longer needed. Over time, this can lead to performance degradation
+   and crashes. We'll learn how to detect and prevent memory leaks.
+
+This repository serves as a valuable resource for C programmers of all levels,
+from beginners to experienced developers, and especially for those following the
+"Fixing Memory Bugs in C" course on Udemy.
+
+Feel free to explore the code samples, experiment, and enhance your
+understanding of memory management in C!
 
 ## Getting Started
 
-To start using the framework in this repository, follow these steps:
+To start using the code in this repository, follow these steps:
 
 1. **Clone the Repository:** Clone this repository to your local machine using
-the following command:
+   the following command:
 
     ``` shell
-    git clone https://github.com/kurijlj/C-Cmake-CLI-Framework.git
+    git clone https://github.com/kurijlj/C-Common-Memory-Errors.git
     ```
 
-2. **Navigate to a Project Tree:** Browse through the project tree and add
-business logic and CMake build instructions required for your app.
+2. **Navigate to a Project Tree:** Browse through the project tree and explore
+   the provided examples and stusy cases.
 
 3. **Compile the code:** Build as a regular CMake project:
 
@@ -45,22 +65,16 @@ business logic and CMake build instructions required for your app.
        cmake --build . --config [Debug|RelWithDebInfo|Release|MinSizeRel]
        ```
 
-## Third-party Library Integration
-
-- **[argparse](https://github.com/cofyc/argparse):** The CLI argument parsing
-  library in C.
-- **[GSL - GNU Scientific Library](https://github.com/ampl/gsl):** The GNU
-  Scientific Library (GSL) is a numerical library for C and C++ programmers.
-- **[munit](https://nemequ.github.io/munit):** Unit testing framework for C.
-
 ## Build Targets
 
-- **app:** The main application target. This is the target that is built
-  from the framework source code.
-- **dummy:** A dummy target that does nothing. This is useful for testing
-  the build tool. And also for buidling the tests.
-- **dummy_test:** A dummy test target that uses the `munit' framework to test
-  the basic functionality of the framework.
+- **uninitialized_values:** This code explores the reading from uninitialized
+  memory. Specifically, we'll investigate what happens when you try to read
+  from a pointer that points to a string that hasn't been assigned a value.
+  The goal is to twofold:
+  1. Observe compiler warnings: We'll compile the code and see what warnings the
+  compiler generates for this practice.
+  1. Explore memory profiling tool output: We'll use a memory profiling tool
+  like DrMemory to see if it detects any issues.
 - **all**: Build all abovementioned targets.
 
 ## License

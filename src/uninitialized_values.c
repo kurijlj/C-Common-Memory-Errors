@@ -1,14 +1,14 @@
 /* ==========================================================================
- *  Copyright (C) <yyyy> Ljubomir Kurij <ljubomir_kurij@protonmail.com>
+ *  Copyright (C) 2024 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
  *
- * This file is part of <PROGRAM_NAME>.
+ * This file is part of "C Cmake CLI Framework".
  *
- * <PROGRAM_NAME> is free software: you can redistribute it and/or
+ * "C Cmake CLI Framework" is free software: you can redistribute it and/or
  * modify it under the terms of the GNU General Public License as published by
  * the Free Software Foundation, either version 3 of the License, or (at your
  * option) any later version.
  *
- * <PROGRAM_NAME> is distributed in the hope that it will be useful,
+ * "C Cmake CLI Framework" is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General
  * Public License for more details.
@@ -19,9 +19,9 @@
 
 /* ==========================================================================
  *
- * yyyy-mm-dd Ljubomir Kurij <ljubomir_kurij@protonmail.com>
+ * 2024-05-10 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
  *
- * * <programfilename>.c: created.
+ * * uninitalized_values.c: created.
  *
  * ========================================================================== */
 
@@ -41,7 +41,7 @@
  * ========================================================================== */
 
 /* ==========================================================================
- * Headers include section
+ * Headers Include Section
  * ========================================================================== */
 
 /* Related header */
@@ -55,14 +55,13 @@
 
 /* External libraries headers */
 #include <argparse.h>
-#include <gsl/gsl_math.h>
 
 /* ==========================================================================
- * Macros definitions section
+ * Macros Definitions Section
  * ========================================================================== */
 
-#define APP_NAME "app"
-#define APP_VERSION "0.1"
+#define APP_NAME "uninitalized_values"
+#define APP_VERSION "1.0"
 #define APP_AUTHOR "Ljubomir Kurij"
 #define APP_EMAIL "ljubomir_kurij@protonmail.com"
 #define APP_COPYRIGHT_YEAR "yyyy"
@@ -70,8 +69,14 @@
 #define APP_LICENSE "GPLv3+"
 #define APP_LICENSE_URL "http://gnu.org/licenses/gpl.html"
 #define APP_DESCRIPTION                                                        \
-  "a versatile framework for constructing CLI apps "                           \
-  "in C"
+  "This code explores a common source of errors in C: reading from\n"          \
+  "uninitialized memory. Specifically, we'll investigate what happens when\n"  \
+  "you try to read from a pointer that points to a string that hasn't been\n"  \
+  "assigned a value. The goal is to twofold:\n\n"                              \
+  "  1. Observe compiler warnings: We'll compile the code and see what\n"      \
+  "     warnings the compiler generates for this practice.\n"                  \
+  "  2. Explore memory profiling tool output: We'll use a memory profiling\n"  \
+  "     tool like DrMemory to see if it detects any issues."
 #ifdef _WIN32
 #define APP_USAGE_A APP_NAME ".exe [OPTION]..."
 #else
@@ -80,7 +85,7 @@
 #define APP_EPILOGUE "\nReport bugs to <" APP_EMAIL ">."
 
 /* ==========================================================================
- * Global variables section
+ * Global Variables Section
  * ========================================================================== */
 
 static const char *const kUsages[] = {
@@ -89,14 +94,20 @@ static const char *const kUsages[] = {
 };
 
 /* ==========================================================================
- * Utility function declarations
+ * Utility Function Declarations Section
  * ========================================================================== */
 
 int short_usage(struct argparse *self, const struct argparse_option *option);
 int version_info(struct argparse *self, const struct argparse_option *option);
 
 /* ==========================================================================
- * Main module
+ * User Defined Function Declarations Section
+ * ========================================================================== */
+
+static void print_message(const char *message);
+
+/* ==========================================================================
+ * Main Function Section
  * ========================================================================== */
 
 int main(int argc, char **argv) {
@@ -130,16 +141,33 @@ int main(int argc, char **argv) {
   int status = EXIT_SUCCESS;
 
   if (argc == 0) {
+    char *message; /* Uninitialized variable */
+
+    /* Call the function with uninitialized variable --------------------------
+
+       This is the line that will cause the program to crash. The variable
+       `message` is uninitialized, so it points to a random location in memory.
+       When we try to read from that location, the program will crash.
+
+       If we run this program with a memory profiling tool like DrMemory, we'll
+       see an error message like this:
+
+        ```
+        Error #1: UNINITIALIZED READ ...
+        ```
+
+       with a stack trace that shows the line of code that caused the error.  */
+    print_message(message);
+
     /* No arguments were given */
-    printf("%s: Main module running ...\n", APP_NAME);
-    printf("%s: PI = %f\n", APP_NAME, M_PI);
+    printf("%s: Program execution complete!\n", APP_NAME);
   }
 
   return status;
 }
 
 /* ==========================================================================
- * Utility function definitions
+ * Utility Function Definitions Section
  * ========================================================================== */
 
 /* --------------------------------------------------------------------------
@@ -192,4 +220,15 @@ int version_info(struct argparse *self, const struct argparse_option *option) {
                  "This is free software: you are free "
                  "to change and redistribute it.",
                  "There is NO WARRANTY, to the extent permitted by law.");
+}
+
+/* ==========================================================================
+ * User Defined Function Definitions Section
+ * ========================================================================== */
+static void print_message(const char *message) {
+  if (NULL != message) {
+    printf("%s: Hello \"%s\"\n", APP_NAME, message);
+  } else {
+    printf("%s: This space left intentionally blank.\n", APP_NAME);
+  }
 }
