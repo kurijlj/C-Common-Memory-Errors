@@ -9,7 +9,7 @@ cmake_minimum_required (VERSION 3.12...3.40)
 project (
     c_common_memory_errors
     VERSION 0.1
-    DESCRIPTION "This code base explores a common source of memory errors in C"
+    DESCRIPTION "This codebase explores a common source of memory errors in C"
     HOMEPAGE_URL "https://github.com/kurijlj/C-Common-Memory-Errors"
     LANGUAGES C
     )
