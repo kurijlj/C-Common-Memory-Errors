@@ -21,7 +21,7 @@
  *
  * 2024-05-10 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
  *
- * * uninitalized_values.c: created.
+ * * invalid_reads.c: created.
  *
  * ========================================================================== */
 
@@ -34,8 +34,10 @@
 /* System headers */
 
 /* Standard Library headers */
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* External libraries headers */
 #include <argparse.h>
@@ -44,7 +46,7 @@
  * Macros Definitions Section
  * ========================================================================== */
 
-#define APP_NAME "uninitalized_values"
+#define APP_NAME "invalid_reads"
 #define APP_VERSION "1.0"
 #define APP_AUTHOR "Ljubomir Kurij"
 #define APP_EMAIL "ljubomir_kurij@protonmail.com"
@@ -54,9 +56,10 @@
 #define APP_LICENSE_URL "http://gnu.org/licenses/gpl.html"
 #define APP_DESCRIPTION                                                        \
   "This code explores a common source of errors in C: reading from\n"          \
-  "uninitialized memory. Specifically, we'll investigate what happens when\n"  \
-  "you try to read from a pointer that points to a string that hasn't been\n"  \
-  "assigned a value. The goal is to twofold:\n\n"                              \
+  "invalid (freed) and unitialized memory. Specifically, we'll\n"              \
+  "investigate what happens when you try to read past the end of an\n"         \
+  "array, and when you try to read from a pointer that has been\n"             \
+  "freed. The goal is to twofold:\n\n"                                         \
   "  1. Observe compiler warnings: We'll compile the code and see what\n"      \
   "     warnings the compiler generates for this practice.\n"                  \
   "  2. Explore memory profiling tool output: We'll use a memory profiling\n"  \
@@ -88,7 +91,10 @@ int version_info(struct argparse *self, const struct argparse_option *option);
  * User Defined Function Declarations Section
  * ========================================================================== */
 
-static void print_message(const char *message);
+static int *get_powers_of_7(int n);
+static void output_powers(int *powers, int n);
+static char *get_alpha_letters(int len);
+static void output_flavors(char **flavors);
 
 /* ==========================================================================
  * Main Function Section
@@ -126,23 +132,49 @@ int main(int argc, char **argv) {
 
   if (argc == 0) {
     /* No arguments were given */
-    char *message; /* Uninitialized variable */
+    int *numbers = NULL;
+    char *text = NULL;
+    char *flavors[] = {
+        "Chocolate", "Strawberry", "Vanilla",
+        /* NULL terminator for the array of strings --------------------------
 
-    /* Call the function with uninitialized variable --------------------------
+           This is a common mistake in C programs. The array of strings is not
+           terminated with a NULL pointer. This is the reason we have a
+           `Error #1: UNINITIALIZED READ: ...` error when we run this code with
+           DrMemory. Note that the in this case, DrMemory will not report any
+           line of code that caused the error.                                */
+        NULL};
 
-       This is the line that will cause the program to crash. The variable
-       `message` is uninitialized, so it points to a random location in memory.
-       When we try to read from that location, the program will crash.
+    numbers = get_powers_of_7(7); /* Allocate memory for 7 integers */
+    if (numbers) {
+      /* Try to read 10 first elements from the allocated memory ------------
 
-       If we run this program with a memory profiling tool like DrMemory, we'll
-       see an error message like this:
+         This is an invalid read because we allocated memory for 7 integers,
+         but we're trying to read 10 integers. This will cause the program to
+         display the undefined behavior or even crash.
 
-        ```
-        Error #1: UNINITIALIZED READ ...
-        ```
+         If we run this code with a memory profiling tool like DrMemory, we'll
+         see an error message like this:
 
-       with a stack trace that shows the line of code that caused the error.  */
-    print_message(message);
+         ```
+         Error #1: UNADDRESSABLE ACCESS beyond heap bounds: ...
+         ```
+
+         with a stack trace that shows the exact line where
+         the error occurred.                                                  */
+      /* output_powers(numbers, 10); */
+      output_powers(numbers, 7);
+      free(numbers); /* Free the allocated memory */
+    }
+
+    text = get_alpha_letters(19);
+    printf("%s: Alpha characters\n", APP_NAME);
+    printf("%s: =================\n", APP_NAME);
+    printf("%s: %s\n", APP_NAME, text);
+    puts("");
+    free(text);
+
+    output_flavors(flavors);
 
     printf("%s: Program execution complete!\n", APP_NAME);
   }
@@ -205,21 +237,108 @@ int version_info(struct argparse *self, const struct argparse_option *option) {
  * ========================================================================== */
 
 /* --------------------------------------------------------------------------
- * Function: print_message
+ * Function: get_powers_of_7
  * --------------------------------------------------------------------------
  *
- * Description: Print a message to the console
+ * Description: Get the first n powers of 7
  *
  * Parameters:
- *     message: Pointer to a string message
+ *     n: Number of powers to calculate
  *
- * Returns: None
+ * Returns: Pointer to an array of n integers
  *
  * -------------------------------------------------------------------------- */
-static void print_message(const char *message) {
-  if (NULL != message) {
-    printf("%s: Hello \"%s\"\n", APP_NAME, message);
-  } else {
-    printf("%s: This space left intentionally blank.\n", APP_NAME);
+static int *get_powers_of_7(int n) {
+  int *ret = NULL;
+  int i = 0;
+
+  ret = calloc(n, sizeof(int));
+  if (ret) {
+    for (i = 0; i < n; i++) {
+      ret[i] = (int)round(pow(7.0, 1.0 + (float)i));
+    }
+  }
+
+  return ret;
+}
+
+/* --------------------------------------------------------------------------
+ * Function: output_powers
+ * --------------------------------------------------------------------------
+ *
+ * Description: Output the powers of 7 (print array of n floats to stdout)
+ *
+ * Parameters:
+ *     powers: Pointer to an array of integers
+ *         n: Number of elements in the array
+ *
+ * Returns: void
+ *
+ * -------------------------------------------------------------------------- */
+static void output_powers(int *powers, int n) {
+  int i = 0;
+
+  printf("%s: Powers of 7\n", APP_NAME);
+  printf("%s: ==========\n", APP_NAME);
+  for (i = 0; i < n; i++) {
+    printf("%s:\t7^%d = %d\n", APP_NAME, 1 + i, powers[i]);
+  }
+  puts("");
+}
+
+/* --------------------------------------------------------------------------
+ * Function: get_alpha_letters
+ * --------------------------------------------------------------------------
+ *
+ * Description: Get the first len letters of the alphabet
+ *
+ * Parameters:
+ *     len: Number of letters to generate
+ *
+ * Returns: Pointer to a string of len characters
+ *
+ * -------------------------------------------------------------------------- */
+static char *get_alpha_letters(int len) {
+  char *text = NULL;
+  int i = 0;
+
+  text = calloc(len + 1, sizeof(char));
+  if (text) {
+    for (i = 0; i < len; i++) {
+      /* NOTE: This is handy for cycling through the range (i % 26) */
+      text[i] = 65 + (i % 26);
+    }
+
+    /* Free the memory allocated for the string before returning it ---------
+
+       This is a common mistake in C programs. The memory allocated for the
+       string is not freed before returning it. This is the reason we have a
+       `Error #1: UNINITIALIZED READ: ...` error when we run this code with
+       DrMemory. Note that the in this case, DrMemory will not report any
+       line of code that caused the error.                                    */
+    /* free(text); */
+  }
+
+  return text;
+}
+
+/* --------------------------------------------------------------------------
+ * Function: output_flavors
+ * --------------------------------------------------------------------------
+ *
+ * Description: Output the flavors (print array of strings to stdout)
+ *
+ * Parameters:
+ *     flavors: Pointer to an array of strings
+ *
+ * Returns: void
+ *
+ * -------------------------------------------------------------------------- */
+static void output_flavors(char **flavors) {
+  printf("%s: Flavors\n", APP_NAME);
+  printf("%s: ========\n", APP_NAME);
+  while (*flavors) {
+    printf("%s:\t%s\n", APP_NAME, *flavors);
+    flavors++;
   }
 }
