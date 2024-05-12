@@ -30,9 +30,10 @@ message(STATUS "Configuring the `invalid_reads` target")
 add_executable(invalid_reads invalid_reads.c)
 
 # Link the `invalid_reads` target with the required libraries
-if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
     # If we are using GCC, we need to link the math library explicitly
-    message(STATUS "Using GCC, linking the math library explicitly")
+    message(STATUS "Using GCC, linking the math library explicitly ...")
+
     find_library(MATH_LIBRARY m)
     if (NOT MATH_LIBRARY)
         message(FATAL_ERROR "Could not find the math library")
