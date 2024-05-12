@@ -1,3 +1,4 @@
+
 /* ==========================================================================
  *  Copyright (C) 2024 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
  *
@@ -20,9 +21,9 @@
 
 /* ==========================================================================
  *
- * 2024-05-10 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
+ * 2024-05-12 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
  *
- * * uninitalized_values.c: created.
+ * * invalid_reads_exercise.c: created.
  *
  * ========================================================================== */
 
@@ -36,8 +37,10 @@
 /* System headers */
 
 /* Standard Library headers */
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* External libraries headers */
 #include <argparse.h>
@@ -47,7 +50,7 @@
  * Macros Definitions Section
  * ========================================================================== */
 
-#define APP_NAME "uninitalized_values"
+#define APP_NAME "invalid_reads"
 #define APP_VERSION "1.0"
 #define APP_AUTHOR "Ljubomir Kurij"
 #define APP_EMAIL "ljubomir_kurij@protonmail.com"
@@ -56,14 +59,7 @@
 #define APP_LICENSE "GPLv3+"
 #define APP_LICENSE_URL "http://gnu.org/licenses/gpl.html"
 #define APP_DESCRIPTION                                                        \
-  "This code explores a common source of errors in C: reading from\n"          \
-  "uninitialized memory. Specifically, we'll investigate what happens when\n"  \
-  "you try to read from a pointer that points to a string that hasn't been\n"  \
-  "assigned a value. The goal is to twofold:\n\n"                              \
-  "  1. Observe compiler warnings: We'll compile the code and see what\n"      \
-  "     warnings the compiler generates for this practice.\n"                  \
-  "  2. Explore memory profiling tool output: We'll use a memory profiling\n"  \
-  "     tool like DrMemory to see if it detects any issues."
+  "A solution to the exercise regarding invalid reads."
 #ifdef _WIN32
 #define APP_USAGE_A APP_NAME ".exe [OPTION]..."
 #else
@@ -94,7 +90,7 @@ int version_info(struct argparse *self, const struct argparse_option *option);
  * User Defined Function Declarations Section
  * ========================================================================== */
 
-static void print_message(const char *message);
+static char *get_sentence(char *text);
 
 
 /* ==========================================================================
@@ -133,23 +129,22 @@ int main(int argc, char **argv) {
 
   if (argc == 0) {
     /* No arguments were given */
-    char *message; /* Uninitialized variable */
+    char *full_texts[] = {
+        "A single sentence",
+        "A single sentence with a period.",
+        "Strange women lying in ponds distributing swords is no basis for a "  \
+        "system of government. Supreme executive power derives from a "        \
+        "mandate from the masses, not from some farcical aquatic ceremony.",
+        NULL
+    };
+    char *sentence = NULL;
+    int i = 0;
 
-    /* Call the function with uninitialized variable --------------------------
-
-       This is the line that will cause the program to crash. The variable
-       `message` is uninitialized, so it points to a random location in memory.
-       When we try to read from that location, the program will crash.
-
-       If we run this program with a memory profiling tool like DrMemory, we'll
-       see an error message like this:
-
-        ```
-        Error #1: UNINITIALIZED READ ...
-        ```
-
-       with a stack trace that shows the line of code that caused the error.  */
-    print_message(message);
+    for (i = 0; full_texts[i] != NULL; i++) {
+      sentence = get_sentence(full_texts[i]);
+      printf("%s: %s\n", APP_NAME, sentence);
+      free(sentence);
+    }
 
     printf("%s: Program execution complete!\n", APP_NAME);
   }
@@ -214,21 +209,41 @@ int version_info(struct argparse *self, const struct argparse_option *option) {
  * ========================================================================== */
 
 /* --------------------------------------------------------------------------
- * Function: print_message
+ * Function: get_sentence
  * --------------------------------------------------------------------------
- * 
- * Description: Print a message to the console
- * 
+ *
+ * Description: Get the first sentence from a text
+ *
  * Parameters:
- *     message: Pointer to a string message
- * 
- * Returns: None
- * 
+ *      text: Pointer to a string containing the text
+ *
+ * Returns: Pointer to a string containing the first sentence
+ *
  * -------------------------------------------------------------------------- */
-static void print_message(const char *message) {
-  if (NULL != message) {
-    printf("%s: Hello \"%s\"\n", APP_NAME, message);
-  } else {
-    printf("%s: This space left intentionally blank.\n", APP_NAME);
+static char *get_sentence(char *text) {
+  char *ret = NULL;
+  int len = 0;
+  int i = 0;
+
+  // find period or end of string
+  for (i = 0; text[i] != '\0' && text[i] != '.'; i++) {
+    len++;
   }
+  if (text[i] == '.') {
+    len++;  /* Add one to len to account for the period */
+  }
+
+  printf("%s: len: %d\n", APP_NAME, len);
+
+  /* Copy only up to period (if found). Since we are using we don't nedd to
+     explicitly add the null terminator at the end of the string, we just
+     need to allocate the memory for it.                                      */
+  ret = calloc(len + 1, sizeof(char));
+  if (ret) {
+    for (i = 0; i < len; i++) {
+      ret[i] = text[i];
+    }
+  }
+
+  return ret;
 }

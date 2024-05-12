@@ -20,9 +20,9 @@
 
 /* ==========================================================================
  *
- * 2024-05-10 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
+ * 2024-05-12 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
  *
- * * uninitalized_values.c: created.
+ * * uninitalized_values_exercise.c: created.
  *
  * ========================================================================== */
 
@@ -47,7 +47,7 @@
  * Macros Definitions Section
  * ========================================================================== */
 
-#define APP_NAME "uninitalized_values"
+#define APP_NAME "uninitalized_values_exercise"
 #define APP_VERSION "1.0"
 #define APP_AUTHOR "Ljubomir Kurij"
 #define APP_EMAIL "ljubomir_kurij@protonmail.com"
@@ -94,7 +94,8 @@ int version_info(struct argparse *self, const struct argparse_option *option);
  * User Defined Function Declarations Section
  * ========================================================================== */
 
-static void print_message(const char *message);
+static int abs_sum(int a, int b);
+static int get_result(int base_num);
 
 
 /* ==========================================================================
@@ -133,23 +134,9 @@ int main(int argc, char **argv) {
 
   if (argc == 0) {
     /* No arguments were given */
-    char *message; /* Uninitialized variable */
-
-    /* Call the function with uninitialized variable --------------------------
-
-       This is the line that will cause the program to crash. The variable
-       `message` is uninitialized, so it points to a random location in memory.
-       When we try to read from that location, the program will crash.
-
-       If we run this program with a memory profiling tool like DrMemory, we'll
-       see an error message like this:
-
-        ```
-        Error #1: UNINITIALIZED READ ...
-        ```
-
-       with a stack trace that shows the line of code that caused the error.  */
-    print_message(message);
+    int base_num = 0;
+    int result = get_result(base_num);
+    printf("%s: Result is %d\n", APP_NAME, result);
 
     printf("%s: Program execution complete!\n", APP_NAME);
   }
@@ -214,21 +201,47 @@ int version_info(struct argparse *self, const struct argparse_option *option) {
  * ========================================================================== */
 
 /* --------------------------------------------------------------------------
- * Function: print_message
+ * Function: abs_sum
  * --------------------------------------------------------------------------
- * 
- * Description: Print a message to the console
- * 
+ *
+ * Description: Calculate the absolute sum of two integers
+ *
  * Parameters:
- *     message: Pointer to a string message
- * 
- * Returns: None
- * 
+ *      a: First integer
+ *      b: Second integer
+ *
+ * Returns: Absolute sum of `a` and `b`
+ *
  * -------------------------------------------------------------------------- */
-static void print_message(const char *message) {
-  if (NULL != message) {
-    printf("%s: Hello \"%s\"\n", APP_NAME, message);
-  } else {
-    printf("%s: This space left intentionally blank.\n", APP_NAME);
+static int abs_sum(int a, int b) {
+  if (a < 0) {
+    a *= -1;
   }
+
+  if (b < 0) {
+    b *= -1;
+  }
+
+  return a + b;
+}
+
+/* --------------------------------------------------------------------------
+ * Function: get_result
+ * --------------------------------------------------------------------------
+ *
+ * Description: Get the result of the absolute sum of two integers
+ *
+ * Parameters:
+ *      base_num: Base number
+ *
+ * Returns: Absolute sum of `base_num` and `user_entered`
+ *
+ * -------------------------------------------------------------------------- */
+static int get_result(int base_num) {
+  int user_entered;
+
+  printf("%s: Enter a number: ", APP_NAME);
+  scanf("%d", &user_entered);
+
+  return abs_sum(base_num, user_entered);
 }

@@ -7,6 +7,65 @@ message(STATUS "Going through ./src")
 
 
 # -----------------------------------------------------------------------------
+# Target: invalid_reads
+# -----------------------------------------------------------------------------
+#
+# Description: This code explores a common source of errors in C: reading from
+#              invalid (freed) and unitialized memory. Specifically, we'll
+#              investigate what happens when you try to read past the end of an
+#              array, and when you try to read from a pointer that has been
+#              freed. The goal is to twofold:
+#
+#              1. Observe compiler warnings: We'll compile the code and see what
+#                 warnings the compiler generates for this practice.
+#              2. Explore memory profiling tool output: We'll use a memory
+#                 profiling tool like DrMemory to see if it detects any issues.
+#
+# -----------------------------------------------------------------------------
+
+# Show message that we are building the `invalid_reads` target
+message(STATUS "Configuring the `invalid_reads` target")
+
+# Set the source files for the `invalid_reads` target
+add_executable(invalid_reads invalid_reads.c)
+
+# Link the `invalid_reads` target with the required libraries
+target_link_libraries(invalid_reads PRIVATE
+    argparse
+)
+
+# Include the required directories for the `invalid_reads` target
+target_include_directories(invalid_reads PRIVATE
+    ${ARGPARSE_INCLUDE_DIR}
+)
+
+
+# -----------------------------------------------------------------------------
+# Target: invalid_reads_exercise
+# -----------------------------------------------------------------------------
+#
+# Description: A solution to the exercise regarding invalid reads.
+#
+# -----------------------------------------------------------------------------
+
+# Show message that we are building the `invalid_reads_exercise` target
+message(STATUS "Configuring the `invalid_reads_exercise` target")
+
+# Set the source files for the `invalid_reads_exercise` target
+add_executable(invalid_reads_exercise invalid_reads_exercise.c)
+
+# Link the `invalid_reads_exercise` target with the required libraries
+target_link_libraries(invalid_reads_exercise PRIVATE
+    argparse
+)
+
+# Include the required directories for the `invalid_reads_exercise` target
+target_include_directories(invalid_reads_exercise PRIVATE
+    ${ARGPARSE_INCLUDE_DIR}
+)
+
+
+# -----------------------------------------------------------------------------
 # Target: uninitalized_values
 # -----------------------------------------------------------------------------
 #
@@ -35,5 +94,31 @@ target_link_libraries(uninitialized_values PRIVATE
 
 # Include the required directories for the `uninitialized_values` target
 target_include_directories(uninitialized_values PRIVATE
+    ${ARGPARSE_INCLUDE_DIR}
+)
+
+
+# -----------------------------------------------------------------------------
+# Target: uninitalized_values_exercise
+# -----------------------------------------------------------------------------
+#
+# Description: A solution to the exercise regarding uninitialized values.
+#
+# -----------------------------------------------------------------------------
+
+# Show message that we are building the `uninitlaized_values_exercise` target
+message(STATUS "Configuring the `uninitialized_values_exercise` target")
+
+# Set the source files for the `uninitialized_values_exercise` target
+add_executable(uninitialized_values_exercise uninitialized_values_exercise.c)
+
+# Link the `uninitialized_values_exercise` target with the required libraries
+target_link_libraries(uninitialized_values_exercise PRIVATE
+    argparse
+)
+
+# Include the required directories for the `uninitialized_values_exercise`
+# target
+target_include_directories(uninitialized_values_exercise PRIVATE
     ${ARGPARSE_INCLUDE_DIR}
 )
