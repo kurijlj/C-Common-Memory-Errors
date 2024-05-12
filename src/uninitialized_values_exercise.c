@@ -17,7 +17,6 @@
  * with Focus Precision Analyze. If not, see <https://www.gnu.org/licenses/>.
  * ========================================================================== */
 
-
 /* ==========================================================================
  *
  * 2024-05-12 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
@@ -25,7 +24,6 @@
  * * uninitalized_values_exercise.c: created.
  *
  * ========================================================================== */
-
 
 /* ==========================================================================
  * Headers Include Section
@@ -41,7 +39,6 @@
 
 /* External libraries headers */
 #include <argparse.h>
-
 
 /* ==========================================================================
  * Macros Definitions Section
@@ -71,7 +68,6 @@
 #endif /* End of platform specific macro definition */
 #define APP_EPILOGUE "\nReport bugs to <" APP_EMAIL ">."
 
-
 /* ==========================================================================
  * Global Variables Section
  * ========================================================================== */
@@ -81,7 +77,6 @@ static const char *const kUsages[] = {
     NULL,
 };
 
-
 /* ==========================================================================
  * Utility Function Declarations Section
  * ========================================================================== */
@@ -89,14 +84,12 @@ static const char *const kUsages[] = {
 int short_usage(struct argparse *self, const struct argparse_option *option);
 int version_info(struct argparse *self, const struct argparse_option *option);
 
-
 /* ==========================================================================
  * User Defined Function Declarations Section
  * ========================================================================== */
 
 static int abs_sum(int a, int b);
 static int get_result(int base_num);
-
 
 /* ==========================================================================
  * Main Function Section
@@ -143,7 +136,6 @@ int main(int argc, char **argv) {
 
   return status;
 }
-
 
 /* ==========================================================================
  * Utility Function Definitions Section
@@ -194,7 +186,6 @@ int version_info(struct argparse *self, const struct argparse_option *option) {
                  "to change and redistribute it.",
                  "There is NO WARRANTY, to the extent permitted by law.");
 }
-
 
 /* ==========================================================================
  * User Defined Function Definitions Section

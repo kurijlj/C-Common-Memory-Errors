@@ -17,7 +17,6 @@
  * with Focus Precision Analyze. If not, see <https://www.gnu.org/licenses/>.
  * ========================================================================== */
 
-
 /* ==========================================================================
  *
  * 2024-05-10 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
@@ -25,7 +24,6 @@
  * * invalid_reads.c: created.
  *
  * ========================================================================== */
-
 
 /* ==========================================================================
  * Headers Include Section
@@ -43,7 +41,6 @@
 
 /* External libraries headers */
 #include <argparse.h>
-
 
 /* ==========================================================================
  * Macros Definitions Section
@@ -74,7 +71,6 @@
 #endif /* End of platform specific macro definition */
 #define APP_EPILOGUE "\nReport bugs to <" APP_EMAIL ">."
 
-
 /* ==========================================================================
  * Global Variables Section
  * ========================================================================== */
@@ -84,7 +80,6 @@ static const char *const kUsages[] = {
     NULL,
 };
 
-
 /* ==========================================================================
  * Utility Function Declarations Section
  * ========================================================================== */
@@ -92,16 +87,14 @@ static const char *const kUsages[] = {
 int short_usage(struct argparse *self, const struct argparse_option *option);
 int version_info(struct argparse *self, const struct argparse_option *option);
 
-
 /* ==========================================================================
  * User Defined Function Declarations Section
  * ========================================================================== */
 
-static int* get_powers_of_7(int n);
-static void output_powers(int* powers, int n);
-static char* get_alpha_letters(int len);
-static void output_flavors(char** flavors);
-
+static int *get_powers_of_7(int n);
+static void output_powers(int *powers, int n);
+static char *get_alpha_letters(int len);
+static void output_flavors(char **flavors);
 
 /* ==========================================================================
  * Main Function Section
@@ -139,23 +132,20 @@ int main(int argc, char **argv) {
 
   if (argc == 0) {
     /* No arguments were given */
-    int* numbers = NULL;
-    char* text = NULL;
-    char* flavors[] = {
-      "Chocolate",
-      "Strawberry",
-      "Vanilla",
-      /* NULL terminator for the array of strings --------------------------
+    int *numbers = NULL;
+    char *text = NULL;
+    char *flavors[] = {
+        "Chocolate", "Strawberry", "Vanilla",
+        /* NULL terminator for the array of strings --------------------------
 
-         This is a common mistake in C programs. The array of strings is not
-         terminated with a NULL pointer. This is the reason we have a
-         `Error #1: UNINITIALIZED READ: ...` error when we run this code with
-         DrMemory. Note that the in this case, DrMemory will not report any
-         line of code that caused the error.                                */
-      NULL
-    };
+           This is a common mistake in C programs. The array of strings is not
+           terminated with a NULL pointer. This is the reason we have a
+           `Error #1: UNINITIALIZED READ: ...` error when we run this code with
+           DrMemory. Note that the in this case, DrMemory will not report any
+           line of code that caused the error.                                */
+        NULL};
 
-    numbers = get_powers_of_7(7);  /* Allocate memory for 7 integers */
+    numbers = get_powers_of_7(7); /* Allocate memory for 7 integers */
     if (numbers) {
       /* Try to read 10 first elements from the allocated memory ------------
 
@@ -174,7 +164,7 @@ int main(int argc, char **argv) {
          the error occurred.                                                  */
       /* output_powers(numbers, 10); */
       output_powers(numbers, 7);
-      free(numbers);  /* Free the allocated memory */
+      free(numbers); /* Free the allocated memory */
     }
 
     text = get_alpha_letters(19);
@@ -191,7 +181,6 @@ int main(int argc, char **argv) {
 
   return status;
 }
-
 
 /* ==========================================================================
  * Utility Function Definitions Section
@@ -243,7 +232,6 @@ int version_info(struct argparse *self, const struct argparse_option *option) {
                  "There is NO WARRANTY, to the extent permitted by law.");
 }
 
-
 /* ==========================================================================
  * User Defined Function Definitions Section
  * ========================================================================== */
@@ -251,23 +239,23 @@ int version_info(struct argparse *self, const struct argparse_option *option) {
 /* --------------------------------------------------------------------------
  * Function: get_powers_of_7
  * --------------------------------------------------------------------------
- * 
+ *
  * Description: Get the first n powers of 7
- * 
+ *
  * Parameters:
  *     n: Number of powers to calculate
- * 
+ *
  * Returns: Pointer to an array of n integers
- * 
+ *
  * -------------------------------------------------------------------------- */
-static int* get_powers_of_7(int n) {
-  int* ret = NULL;
+static int *get_powers_of_7(int n) {
+  int *ret = NULL;
   int i = 0;
 
   ret = calloc(n, sizeof(int));
   if (ret) {
     for (i = 0; i < n; i++) {
-      ret[i] = (int) round(pow(7.0, 1.0 + (float) i));
+      ret[i] = (int)round(pow(7.0, 1.0 + (float)i));
     }
   }
 
@@ -277,17 +265,17 @@ static int* get_powers_of_7(int n) {
 /* --------------------------------------------------------------------------
  * Function: output_powers
  * --------------------------------------------------------------------------
- * 
+ *
  * Description: Output the powers of 7 (print array of n floats to stdout)
- * 
+ *
  * Parameters:
  *     powers: Pointer to an array of integers
  *         n: Number of elements in the array
- * 
+ *
  * Returns: void
- * 
+ *
  * -------------------------------------------------------------------------- */
-static void output_powers(int* powers, int n) {
+static void output_powers(int *powers, int n) {
   int i = 0;
 
   printf("%s: Powers of 7\n", APP_NAME);
@@ -301,17 +289,17 @@ static void output_powers(int* powers, int n) {
 /* --------------------------------------------------------------------------
  * Function: get_alpha_letters
  * --------------------------------------------------------------------------
- * 
+ *
  * Description: Get the first len letters of the alphabet
- * 
+ *
  * Parameters:
  *     len: Number of letters to generate
- * 
+ *
  * Returns: Pointer to a string of len characters
- * 
+ *
  * -------------------------------------------------------------------------- */
-static char* get_alpha_letters(int len) {
-  char* text = NULL;
+static char *get_alpha_letters(int len) {
+  char *text = NULL;
   int i = 0;
 
   text = calloc(len + 1, sizeof(char));
@@ -337,16 +325,16 @@ static char* get_alpha_letters(int len) {
 /* --------------------------------------------------------------------------
  * Function: output_flavors
  * --------------------------------------------------------------------------
- * 
+ *
  * Description: Output the flavors (print array of strings to stdout)
- * 
+ *
  * Parameters:
  *     flavors: Pointer to an array of strings
- * 
+ *
  * Returns: void
- * 
+ *
  * -------------------------------------------------------------------------- */
-static void output_flavors(char** flavors) {
+static void output_flavors(char **flavors) {
   printf("%s: Flavors\n", APP_NAME);
   printf("%s: ========\n", APP_NAME);
   while (*flavors) {

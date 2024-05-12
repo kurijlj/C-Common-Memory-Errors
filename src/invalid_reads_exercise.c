@@ -18,7 +18,6 @@
  * with Focus Precision Analyze. If not, see <https://www.gnu.org/licenses/>.
  * ========================================================================== */
 
-
 /* ==========================================================================
  *
  * 2024-05-12 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
@@ -26,7 +25,6 @@
  * * invalid_reads_exercise.c: created.
  *
  * ========================================================================== */
-
 
 /* ==========================================================================
  * Headers Include Section
@@ -45,7 +43,6 @@
 /* External libraries headers */
 #include <argparse.h>
 
-
 /* ==========================================================================
  * Macros Definitions Section
  * ========================================================================== */
@@ -58,15 +55,13 @@
 #define APP_COPYRIGHT_HOLDER APP_AUTHOR
 #define APP_LICENSE "GPLv3+"
 #define APP_LICENSE_URL "http://gnu.org/licenses/gpl.html"
-#define APP_DESCRIPTION                                                        \
-  "A solution to the exercise regarding invalid reads."
+#define APP_DESCRIPTION "A solution to the exercise regarding invalid reads."
 #ifdef _WIN32
 #define APP_USAGE_A APP_NAME ".exe [OPTION]..."
 #else
 #define APP_USAGE_A APP_NAME " [OPTION]..."
 #endif /* End of platform specific macro definition */
 #define APP_EPILOGUE "\nReport bugs to <" APP_EMAIL ">."
-
 
 /* ==========================================================================
  * Global Variables Section
@@ -77,7 +72,6 @@ static const char *const kUsages[] = {
     NULL,
 };
 
-
 /* ==========================================================================
  * Utility Function Declarations Section
  * ========================================================================== */
@@ -85,13 +79,11 @@ static const char *const kUsages[] = {
 int short_usage(struct argparse *self, const struct argparse_option *option);
 int version_info(struct argparse *self, const struct argparse_option *option);
 
-
 /* ==========================================================================
  * User Defined Function Declarations Section
  * ========================================================================== */
 
 static char *get_sentence(char *text);
-
 
 /* ==========================================================================
  * Main Function Section
@@ -130,13 +122,11 @@ int main(int argc, char **argv) {
   if (argc == 0) {
     /* No arguments were given */
     char *full_texts[] = {
-        "A single sentence",
-        "A single sentence with a period.",
-        "Strange women lying in ponds distributing swords is no basis for a "  \
-        "system of government. Supreme executive power derives from a "        \
+        "A single sentence", "A single sentence with a period.",
+        "Strange women lying in ponds distributing swords is no basis for a "
+        "system of government. Supreme executive power derives from a "
         "mandate from the masses, not from some farcical aquatic ceremony.",
-        NULL
-    };
+        NULL};
     char *sentence = NULL;
     int i = 0;
 
@@ -151,7 +141,6 @@ int main(int argc, char **argv) {
 
   return status;
 }
-
 
 /* ==========================================================================
  * Utility Function Definitions Section
@@ -203,7 +192,6 @@ int version_info(struct argparse *self, const struct argparse_option *option) {
                  "There is NO WARRANTY, to the extent permitted by law.");
 }
 
-
 /* ==========================================================================
  * User Defined Function Definitions Section
  * ========================================================================== */
@@ -230,7 +218,7 @@ static char *get_sentence(char *text) {
     len++;
   }
   if (text[i] == '.') {
-    len++;  /* Add one to len to account for the period */
+    len++; /* Add one to len to account for the period */
   }
 
   printf("%s: len: %d\n", APP_NAME, len);
