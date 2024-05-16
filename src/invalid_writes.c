@@ -1,4 +1,3 @@
-
 /* ==========================================================================
  *  Copyright (C) 2024 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
  *
@@ -20,9 +19,9 @@
 
 /* ==========================================================================
  *
- * 2024-05-12 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
+ * 2024-05-15 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
  *
- * * invalid_reads_exercise.c: created.
+ * * invalid_writes.c: created.
  *
  * ========================================================================== */
 
@@ -35,7 +34,6 @@
 /* System headers */
 
 /* Standard Library headers */
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,7 +45,7 @@
  * Macros Definitions Section
  * ========================================================================== */
 
-#define APP_NAME "invalid_reads_exercise"
+#define APP_NAME "invalid_writes"
 #define APP_VERSION "1.0"
 #define APP_AUTHOR "Ljubomir Kurij"
 #define APP_EMAIL "ljubomir_kurij@protonmail.com"
@@ -55,7 +53,17 @@
 #define APP_COPYRIGHT_HOLDER APP_AUTHOR
 #define APP_LICENSE "GPLv3+"
 #define APP_LICENSE_URL "http://gnu.org/licenses/gpl.html"
-#define APP_DESCRIPTION "A solution to the exercise regarding invalid reads."
+#define APP_DESCRIPTION                                                        \
+  "This code explores a common source of errors in C: writting to\n"           \
+  "invalid (freed) and unitialized memory. Specifically, we'll investigate\n"  \
+  "what happens when you try to write to a memory location that has not\n"     \
+  "been allocated or has been deallocated. We'll also try to write past the\n" \
+  "end of a buffer and write to a file after it has been closed. The goal\n"   \
+  "is to twofold:\n\n"                                                         \
+  "  1. Observe compiler warnings: We'll compile the code and see what\n"      \
+  "     warnings the compiler generates for this practice.\n"                  \
+  "  2. Explore memory profiling tool output: We'll use a memory profiling\n"  \
+  "     tool like DrMemory to see if it detects any issues."
 #ifdef _WIN32
 #define APP_USAGE_A APP_NAME ".exe [OPTION]..."
 #else
@@ -83,7 +91,9 @@ int version_info(struct argparse *self, const struct argparse_option *option);
  * User Defined Function Declarations Section
  * ========================================================================== */
 
-static char *get_sentence(char *text);
+static void set_zero(char *dest, int num_bytes);
+static void get_message(char *message);
+static void write_quote(FILE *f, char *text);
 
 /* ==========================================================================
  * Main Function Section
@@ -121,21 +131,82 @@ int main(int argc, char **argv) {
 
   if (argc == 0) {
     /* No arguments were given */
-    char *full_texts[] = {
-        "A single sentence", "A single sentence with a period.",
-        "Strange women lying in ponds distributing swords is no basis for a "
-        "system of government. Supreme executive power derives from a "
-        "mandate from the masses, not from some farcical aquatic ceremony.",
-        NULL};
-    char *sentence = NULL;
-    int i = 0;
+    char *buf = NULL;
+    /* char message[10] = ""; */
+    FILE *outfile = NULL;
 
-    for (i = 0; full_texts[i] != NULL; i++) {
-      sentence = get_sentence(full_texts[i]);
-      printf("%s: %s\n", APP_NAME, sentence);
-      free(sentence);
+    /* Try to write to an invalid memory location ---------------------------
+
+       This is the `invalid write` because we are trying to write to a memory
+       location that has not been allocated. The `buf` pointer is initialized
+       to `NULL` and then passed to the `set_zero` function.
+
+       If we run this part of the code with a memory profiling tool like
+       DrMemory, it will throw following errors:
+
+       ```
+       Error #1: UNADDRESSABLE ACCESS: writing ...
+       ...
+       Error #2: UNINITIALIZED READ: reading ...
+       ```
+
+       with a stack trace that shows the exact line of code that caused the
+       error.
+    */
+    buf = (char *)malloc(100);
+    set_zero(buf, sizeof(buf));
+    free(buf);
+
+    /* Try to write past the end of a buffer --------------------------------
+
+       This is the `invalid write` because we are trying to write past the
+       end of the buffer. Our buffer is only 10 bytes long, but we are trying
+       to write 26 bytes to it (see the function defintion for the
+       `get_message`). This will cause a corruption of the stack and a
+       crash.
+
+       If we run this part of the code with a memory profiling tool like
+       DrMemory, it will throw following errors:
+
+       ```
+       Error #1: UNINITIALIZED READ: reading ... 96 byte(s) within ...
+       ...
+       Error #2: UNINITIALIZED READ: reading ... 6 byte(s) within ...
+       ```
+
+       with a stack trace that points to the end of the `main` function.
+    */
+    char message[50] = "";
+    get_message(message);
+
+    outfile = fopen("outfile.txt", "w");
+    if (outfile) {
+      /* Try to write to a file after it has been closed --------------------
+
+         This is the `invalid write` because we are trying to write to a file
+         after it has been closed (see the function definition for the
+         `write_quote`).
+
+         Interestingly, this will not cause a crash or a memory error on the
+         Windows platform. The file will be created and the quote will be
+         written to it. However, the "Albert Einstein" line will not be
+         written to the file. Also DrMemory will not detect any errors.
+
+         However, if we examine the return value of the `fputs` function, we
+         will see that it returns `EOF`, which indicates an error. This is
+         because the file has been closed and we are trying to write to it
+         after it has been closed.
+      */
+      write_quote(outfile, "If we knew what it was we were doing,"
+                           " it would not be called research, would it?");
+      int result = fputs("\tAlbert Einstein", outfile);
+      printf("%s: %s\n", APP_NAME,
+             result == EOF ? "Error writing to file"
+                           : "File written successfully");
+      fclose(outfile);
     }
 
+    /* End of main module code. Print exit message -------------------------- */
     printf("%s: Program execution complete!\n", APP_NAME);
   }
 
@@ -197,42 +268,77 @@ int version_info(struct argparse *self, const struct argparse_option *option) {
  * ========================================================================== */
 
 /* --------------------------------------------------------------------------
- * Function: get_sentence
+ * Function: set_zero
  * --------------------------------------------------------------------------
  *
- * Description: Get the first sentence from a text
+ * Description: Set a block of memory to zero
  *
  * Parameters:
- *      text: Pointer to a string containing the text
+ *      dest: Pointer to the memory block
+ * num_bytes: Number of bytes to set to zero
  *
- * Returns: Pointer to a string containing the first sentence
+ * Returns: None
  *
  * -------------------------------------------------------------------------- */
-static char *get_sentence(char *text) {
-  char *ret = NULL;
-  int len = 0;
+static void set_zero(char *dest, int num_bytes) {
   int i = 0;
 
-  // find period or end of string
-  for (i = 0; text[i] != '\0' && text[i] != '.'; i++) {
-    len++;
+  for (i = 0; i < num_bytes; i++) {
+    dest[i] = 0;
   }
-  if (text[i] == '.') {
-    len++; /* Add one to len to account for the period */
+}
+
+/* --------------------------------------------------------------------------
+ * Function: get_message
+ * --------------------------------------------------------------------------
+ *
+ * Description: Get a message
+ *
+ * Parameters:
+ *      message: Pointer to the buffer to store the message
+ *
+ * Returns: None
+ *
+ * -------------------------------------------------------------------------- */
+static void get_message(char *message) {
+  char *alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  strncpy(message, alphabet, strlen(alphabet));
+}
+
+/* --------------------------------------------------------------------------
+ * Function: write_quote
+ * --------------------------------------------------------------------------
+ *
+ * Description: Write a quote to a file
+ *
+ * Parameters:
+ *      f: Pointer to the file
+ *   text: Pointer to the quote
+ *
+ * Returns: None
+ *
+ * -------------------------------------------------------------------------- */
+static void write_quote(FILE *f, char *text) {
+  int len = strlen(text);
+  int i = 0;
+
+  /* put out a line of equal signs before the quote */
+  for (i = 0; i < len; i++) {
+    fputc('=', f);
   }
+  fputc('\n', f);
 
-  printf("%s: len: %d\n", APP_NAME, len);
+  /* put out the actual quote */
+  fputs(text, f);
 
-  /* Copy only up to period (if found). Since we are using we don't nedd to
-     explicitly add the null terminator at the end of the string, we just
-     need to allocate the memory for it.
-  */
-  ret = calloc(len + 1, sizeof(char));
-  if (ret) {
-    for (i = 0; i < len; i++) {
-      ret[i] = text[i];
-    }
+  /* terminate with another line of equal signs */
+  fputc('\n', f);
+  for (i = 0; i < len; i++) {
+    fputc('=', f);
   }
+  fputc('\n', f);
 
-  return ret;
+  /* all done! */
+  /* fclose(f); */
 }

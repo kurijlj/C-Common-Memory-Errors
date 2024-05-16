@@ -20,9 +20,9 @@
 
 /* ==========================================================================
  *
- * 2024-05-12 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
+ * 2024-05-15 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
  *
- * * invalid_reads_exercise.c: created.
+ * * invalid_writes_exercise.c: created.
  *
  * ========================================================================== */
 
@@ -35,7 +35,6 @@
 /* System headers */
 
 /* Standard Library headers */
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -47,7 +46,7 @@
  * Macros Definitions Section
  * ========================================================================== */
 
-#define APP_NAME "invalid_reads_exercise"
+#define APP_NAME "invalid_writes_exercise"
 #define APP_VERSION "1.0"
 #define APP_AUTHOR "Ljubomir Kurij"
 #define APP_EMAIL "ljubomir_kurij@protonmail.com"
@@ -55,7 +54,7 @@
 #define APP_COPYRIGHT_HOLDER APP_AUTHOR
 #define APP_LICENSE "GPLv3+"
 #define APP_LICENSE_URL "http://gnu.org/licenses/gpl.html"
-#define APP_DESCRIPTION "A solution to the exercise regarding invalid reads."
+#define APP_DESCRIPTION "A solution to the exercise regarding invalid writes."
 #ifdef _WIN32
 #define APP_USAGE_A APP_NAME ".exe [OPTION]..."
 #else
@@ -83,7 +82,8 @@ int version_info(struct argparse *self, const struct argparse_option *option);
  * User Defined Function Declarations Section
  * ========================================================================== */
 
-static char *get_sentence(char *text);
+static void get_quote(char *buf, size_t buf_size);
+static void write_files(char **filenames, char *content);
 
 /* ==========================================================================
  * Main Function Section
@@ -121,21 +121,19 @@ int main(int argc, char **argv) {
 
   if (argc == 0) {
     /* No arguments were given */
-    char *full_texts[] = {
-        "A single sentence", "A single sentence with a period.",
-        "Strange women lying in ponds distributing swords is no basis for a "
-        "system of government. Supreme executive power derives from a "
-        "mandate from the masses, not from some farcical aquatic ceremony.",
-        NULL};
-    char *sentence = NULL;
-    int i = 0;
+    char *filenames[] = {
+        "first.txt",
+        "second.txt",
+        "third.txt",
+        NULL,
+    };
+    char *content = (char *)calloc(256, sizeof(char));
 
-    for (i = 0; full_texts[i] != NULL; i++) {
-      sentence = get_sentence(full_texts[i]);
-      printf("%s: %s\n", APP_NAME, sentence);
-      free(sentence);
-    }
+    get_quote(content, 256);
 
+    write_files(filenames, content);
+
+    /* Execution of the main code section is complete. Print the exit message */
     printf("%s: Program execution complete!\n", APP_NAME);
   }
 
@@ -197,42 +195,53 @@ int version_info(struct argparse *self, const struct argparse_option *option) {
  * ========================================================================== */
 
 /* --------------------------------------------------------------------------
- * Function: get_sentence
+ * Function: get_quote
  * --------------------------------------------------------------------------
  *
- * Description: Get the first sentence from a text
+ * Description: Get a quote
  *
  * Parameters:
- *      text: Pointer to a string containing the text
+ *      buf: Buffer to store the quote
+ * buf_size: Size of the buffer
  *
- * Returns: Pointer to a string containing the first sentence
+ * Returns: None
  *
  * -------------------------------------------------------------------------- */
-static char *get_sentence(char *text) {
-  char *ret = NULL;
-  int len = 0;
-  int i = 0;
+static void get_quote(char *buf, size_t buf_size) {
+  const char *quote =
+      "My Software never has bugs. It just develops random features.";
 
-  // find period or end of string
-  for (i = 0; text[i] != '\0' && text[i] != '.'; i++) {
-    len++;
+  if (strlen(quote) >= buf_size) {
+    strncpy(buf, quote, strlen(buf));
+  } else {
+    strncpy(buf, quote, strlen(quote));
   }
-  if (text[i] == '.') {
-    len++; /* Add one to len to account for the period */
-  }
+}
 
-  printf("%s: len: %d\n", APP_NAME, len);
+/* --------------------------------------------------------------------------
+ * Function: write_files
+ * --------------------------------------------------------------------------
+ *
+ * Description: Write content to files
+ *
+ * Parameters:
+ *      filenames: Array of filenames
+ *     content: Content to write to files
+ *
+ * Returns: None
+ *
+ * -------------------------------------------------------------------------- */
+static void write_files(char **filenames, char *content) {
+  FILE *f;
+  long int i;
 
-  /* Copy only up to period (if found). Since we are using we don't nedd to
-     explicitly add the null terminator at the end of the string, we just
-     need to allocate the memory for it.
-  */
-  ret = calloc(len + 1, sizeof(char));
-  if (ret) {
-    for (i = 0; i < len; i++) {
-      ret[i] = text[i];
+  for (i = 0; filenames[i] != NULL; i++) {
+    printf("%s: Writing to file: %s\n", APP_NAME, filenames[i]);
+    f = fopen(filenames[i], "w");
+    if (f) {
+      fprintf(f, "Quote #%d: ", i + 1);
+      fputs(content, f);
+      fclose(f);
     }
   }
-
-  return ret;
 }
