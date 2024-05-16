@@ -70,12 +70,29 @@ To start using the code in this repository, follow these steps:
 - **uninitialized_values:** This code explores the reading from uninitialized
   memory. Specifically, we'll investigate what happens when you try to read
   from a pointer that points to a string that hasn't been assigned a value.
-  The goal is to twofold:
-  1. Observe compiler warnings: We'll compile the code and see what warnings the
-  compiler generates for this practice.
-  1. Explore memory profiling tool output: We'll use a memory profiling tool
-  like DrMemory to see if it detects any issues.
+- **unitialized_values_exercise:** This code is the solution to the accompanying
+  exercise on unitialized values.
+- **invalid_reads:** This code explores a common source of errors in C: reading
+  from invalid (freed) and unitialized memory. Specifically, we'll investigate
+  what happens when you try to read past the end of an array, and when you try
+  to read from a pointer that has been freed.
+- **invalid_reads_exercise:** This code is the solution to the accompanying
+  exercise on invalid reads.
+- **invalid_writes:** This code explores a common source of errors in C:
+  writting to invalid (freed) and unitialized memory. Specifically, we'll
+  investigate what happens when you try to write to a memory location that has
+  not been allocated or has been deallocated. We'll also try to write past the
+  end of a buffer and write to a file after it has been closed.
+- **invalid_writes_exercise:** This code is the solution to the accompanying
+  exercise on invalid writes.
 - **all**: Build all abovementioned targets.
+
+For all available build targets the goal is to twofold:
+
+1. Observe compiler warnings: We'll compile the code and see what warnings the
+   compiler generates for this practice.
+2. Explore memory profiling tool output: We'll use a memory profiling tool like
+   DrMemory to see if it detects any issues.
 
 ## License
 

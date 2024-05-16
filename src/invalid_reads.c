@@ -142,12 +142,13 @@ int main(int argc, char **argv) {
            terminated with a NULL pointer. This is the reason we have a
            `Error #1: UNINITIALIZED READ: ...` error when we run this code with
            DrMemory. Note that the in this case, DrMemory will not report any
-           line of code that caused the error.                                */
+           line of code that caused the error.
+        */
         NULL};
 
     numbers = get_powers_of_7(7); /* Allocate memory for 7 integers */
     if (numbers) {
-      /* Try to read 10 first elements from the allocated memory ------------
+      /* Try to read 10 first elements from the allocated memory -------------
 
          This is an invalid read because we allocated memory for 7 integers,
          but we're trying to read 10 integers. This will cause the program to
@@ -161,7 +162,8 @@ int main(int argc, char **argv) {
          ```
 
          with a stack trace that shows the exact line where
-         the error occurred.                                                  */
+         the error occurred.
+      */
       /* output_powers(numbers, 10); */
       output_powers(numbers, 7);
       free(numbers); /* Free the allocated memory */
@@ -270,7 +272,7 @@ static int *get_powers_of_7(int n) {
  *
  * Parameters:
  *     powers: Pointer to an array of integers
- *         n: Number of elements in the array
+ *          n: Number of elements in the array
  *
  * Returns: void
  *
