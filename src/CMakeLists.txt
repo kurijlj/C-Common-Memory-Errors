@@ -7,6 +7,65 @@ message(STATUS "Going through ./src")
 
 
 # -----------------------------------------------------------------------------
+# Target: invalid_frees
+# -----------------------------------------------------------------------------
+#
+# Description: This code explores a common source of errors in C: freeing
+#              memory that has already been freed.
+#              ...
+#              The goal is to twofold:
+#
+#              1. Observe compiler warnings: We'll compile the code and see what
+#                 warnings the compiler generates for this practice.
+#              2. Explore memory profiling tool output: We'll use a memory
+#                 profiling tool like DrMemory to see if it detects any issues.
+#
+# -----------------------------------------------------------------------------
+
+# Show message that we are building the `invalid_frees` target
+message(STATUS "Configuring the `invalid_frees` target")
+
+# Set the source files for the `invalid_frees` target
+add_executable(invalid_frees invalid_frees.c)
+
+# Link the `invalid_frees` target with the required libraries
+target_link_libraries(invalid_frees PRIVATE
+    argparse
+    ${MATH_LIBRARY}
+)
+
+# Include the required directories for the `invalid_frees` target
+target_include_directories(invalid_frees PRIVATE
+    ${ARGPARSE_INCLUDE_DIR}
+)
+
+
+# -----------------------------------------------------------------------------
+# Target: invalid_frees_exercise
+# -----------------------------------------------------------------------------
+#
+# Description: A solution to the exercise regarding invalid reads.
+#
+# -----------------------------------------------------------------------------
+
+# Show message that we are building the `invalid_frees_exercise` target
+message(STATUS "Configuring the `invalid_frees_exercise` target")
+
+# Set the source files for the `invalid_frees_exercise` target
+add_executable(invalid_frees_exercise invalid_frees_exercise.c)
+
+# Link the `invalid_frees_exercise` target with the required libraries
+target_link_libraries(invalid_frees_exercise PRIVATE
+    argparse
+)
+
+# Include the required directories for the `invalid_frees_exercise` target
+target_include_directories(invalid_frees_exercise PRIVATE
+    ${ARGPARSE_INCLUDE_DIR}
+)
+
+
+# -----------------------------------------------------------------------------
 # Target: invalid_reads
 # -----------------------------------------------------------------------------
 #
