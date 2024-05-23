@@ -95,7 +95,7 @@ int version_info(struct argparse *self, const struct argparse_option *option);
  * User Defined Function Declarations Section
  * ========================================================================== */
 
-static char *even_or_blank(int i, char *err);
+static char *even_or_blank(int i, char **err);
 static void print_evens(int highest);
 static int *get_odds(int highest, long int *num_odds);
 static void show_odds(int highest);
