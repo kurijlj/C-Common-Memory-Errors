@@ -20,9 +20,9 @@
 
 /* ==========================================================================
  *
- * 2024-05-15 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
+ * 2024-05-23 Ljubomir Kurij <ljubomir_kurij@protonmail.com>
  *
- * * invalid_writes_exercise.c: created.
+ * * invalid_frees_exercise.c: created.
  *
  * ========================================================================== */
 
@@ -46,7 +46,7 @@
  * Macros Definitions Section
  * ========================================================================== */
 
-#define APP_NAME "invalid_writes_exercise"
+#define APP_NAME "invalid_frees_exercise"
 #define APP_VERSION "1.0"
 #define APP_AUTHOR "Ljubomir Kurij"
 #define APP_EMAIL "ljubomir_kurij@protonmail.com"
@@ -54,13 +54,15 @@
 #define APP_COPYRIGHT_HOLDER APP_AUTHOR
 #define APP_LICENSE "GPLv3+"
 #define APP_LICENSE_URL "http://gnu.org/licenses/gpl.html"
-#define APP_DESCRIPTION "A solution to the exercise regarding invalid writes."
+#define APP_DESCRIPTION "A solution to the exercise regarding invalid frees."
 #ifdef _WIN32
 #define APP_USAGE_A APP_NAME ".exe [OPTION]..."
 #else
 #define APP_USAGE_A APP_NAME " [OPTION]..."
 #endif /* End of platform specific macro definition */
 #define APP_EPILOGUE "\nReport bugs to <" APP_EMAIL ">."
+
+#define MY_DEBUG 0
 
 /* ==========================================================================
  * Global Variables Section
@@ -82,8 +84,9 @@ int version_info(struct argparse *self, const struct argparse_option *option);
  * User Defined Function Declarations Section
  * ========================================================================== */
 
-static void get_quote(char *buf, size_t buf_size);
-static void write_files(char **filenames, char *content);
+static void my_free(void *ptr);
+static char *fix_amp(char *src);
+static char *get_user_text();
 
 /* ==========================================================================
  * Main Function Section
@@ -121,17 +124,19 @@ int main(int argc, char **argv) {
 
   if (argc == 0) {
     /* No arguments were given */
-    char *filenames[] = {
-        "first.txt",
-        "second.txt",
-        "third.txt",
-        NULL,
-    };
-    char *content = (char *)calloc(256, sizeof(char));
+    char *s = get_user_text();
+    char *fixed = fix_amp(s);
+    free(s);
+    s = fixed;
+    fixed = fix_amp(s);
+    free(s);
+    s = NULL;
 
-    get_quote(content, 256);
+    printf("Encoded: %s\n", fixed);
 
-    write_files(filenames, content);
+    /* Free the last pointer */
+    free(fixed);
+    fixed = NULL;
 
     /* Execution of the main code section is complete. Print the exit message */
     printf("%s: Program execution complete!\n", APP_NAME);
@@ -195,53 +200,65 @@ int version_info(struct argparse *self, const struct argparse_option *option) {
  * ========================================================================== */
 
 /* --------------------------------------------------------------------------
- * Function: get_quote
+ * Function: fix_amp
  * --------------------------------------------------------------------------
  *
- * Description: Get a quote
+ * Description: Fix ampersands in a string by double-encoding them.
  *
  * Parameters:
- *      buf: Buffer to store the quote
- * buf_size: Size of the buffer
+ *     src: Pointer to the source string
  *
- * Returns: None
+ * Returns: Pointer to the fixed string
  *
  * -------------------------------------------------------------------------- */
-static void get_quote(char *buf, size_t buf_size) {
-  const char *quote =
-      "My Software never has bugs. It just develops random features.";
+static char *fix_amp(char *src) {
+  char *fixed = NULL;
+  int i = 0;
+  int new_len = 0;
 
-  if (strlen(quote) >= buf_size) {
-    strncpy(buf, quote, strlen(buf));
-  } else {
-    strncpy(buf, quote, strlen(quote));
+  for (i = 0; src[i] != '\0'; i++) {
+    if (src[i] == '&') {
+      new_len += 5;
+    } else {
+      new_len++;
+    }
   }
+
+  fixed = calloc(new_len + 1, sizeof(char));
+  if (fixed) {
+    int j = 0;
+    for (i = 0; src[i] != '\0'; i++) {
+      if (src[i] == '&') {
+        memcpy(fixed + j, "&amp;", 5);
+        j += 5;
+      } else {
+        fixed[j] = src[i];
+        j++;
+      }
+    }
+    fixed[j] = '\0';
+  }
+
+  return fixed;
 }
 
 /* --------------------------------------------------------------------------
- * Function: write_files
+ * Function: get_user_text
  * --------------------------------------------------------------------------
  *
- * Description: Write content to files
+ * Description: Get text input from the user.
  *
- * Parameters:
- *      filenames: Array of filenames
- *     content: Content to write to files
- *
- * Returns: None
+ * Returns: Pointer to the user input text
  *
  * -------------------------------------------------------------------------- */
-static void write_files(char **filenames, char *content) {
-  FILE *f;
-  long int i;
+static char *get_user_text() {
+  char buf[1024] = "";
+  char *input_txt = "Enter text to double-encode: ";
+  char *text_input = NULL;
 
-  for (i = 0; filenames[i] != NULL; i++) {
-    printf("%s: Writing to file: %s\n", APP_NAME, filenames[i]);
-    f = fopen(filenames[i], "w");
-    if (f) {
-      fprintf(f, "Quote #%d: ", i + 1);
-      fputs(content, f);
-      fclose(f);
-    }
-  }
+  printf("%s", input_txt);
+  fgets(buf, sizeof(buf), stdin);
+  text_input = strdup(buf);
+
+  return text_input;
 }

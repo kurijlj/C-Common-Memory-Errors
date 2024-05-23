@@ -55,8 +55,14 @@
 #define APP_LICENSE_URL "http://gnu.org/licenses/gpl.html"
 #define APP_DESCRIPTION                                                        \
   "This code explores a common source of errors in C: freeing memory that\n"   \
-  "has already been freed.\n"                                                  \
-  "...\n"                                                                      \
+  "has already been freed. In particular, we'll look at the\n"                 \
+  "following cases:\n"                                                         \
+  "  1. Trying to free a string literal\n"                                     \
+  "  2. Trying to free invalid memory reference (i.e. ordinary variable)\n"    \
+  "  3. Trying to free a block of memory inside the already freed block\n"     \
+  "  4. Trying to free the memory that is not dynamically allocated\n"         \
+  "     (i.e. stack memory)\n"                                                 \
+  "\n"                                                                         \
   "The goal is to twofold:\n\n"                                                \
   "  1. Observe compiler warnings: We'll compile the code and see what\n"      \
   "     warnings the compiler generates for this practice.\n"                  \
@@ -89,7 +95,7 @@ int version_info(struct argparse *self, const struct argparse_option *option);
  * User Defined Function Declarations Section
  * ========================================================================== */
 
-static char *even_or_blank(int i);
+static char *even_or_blank(int i, char *err);
 static void print_evens(int highest);
 static int *get_odds(int highest, long int *num_odds);
 static void show_odds(int highest);
@@ -198,40 +204,82 @@ int version_info(struct argparse *self, const struct argparse_option *option) {
  * User Defined Function Definitions Section
  * ========================================================================== */
 
-static char *even_or_blank(int i) {
+/* --------------------------------------------------------------------------
+ * Function: even_or_blank
+ * --------------------------------------------------------------------------
+ *
+ * Description: Return a string representation of an even number or an empty
+ *              string for an odd number. If the number is too large (>= 100),
+ *              return an NULL reference, and set the error message.
+ * Parameters:
+ *      i: Integer number to check
+ *
+ * Returns: String representation of the number or an empty string
+ *
+ * Note: The function returns a reference to allocated memory when the input
+ *       number is even, and a reference to a read-only memory location when the
+ *       number is odd, or the number is too large. This is a common source of
+ *       memory errors in C. To prevent this, the returned reference should be
+ *       consistent, either by allocating memory for all cases, or by returning
+ *       a reference to a read-only memory location for all cases.
+ *
+ * -------------------------------------------------------------------------- */
+static char *even_or_blank(int i, char **err) {
   char buf[4] = ""; // big enough for 2 digits + null terminator
 
+  *err = NULL;
   if (i >= 100) {
-    return "Sorry, this number is too large.";
+    /* return "Sorry, this number is too large."; */
+    *err = "Sorry, this number is too large.";
+    return NULL;
   }
 
   if (i % 2 == 0) {
     snprintf(buf, sizeof(buf), "%d", i);
     return strdup(buf);
   } else {
-    return "";  /* Blank or empty string!? */
+    /* return ""; */
+    return strdup("");
   }
 }
 
+/* --------------------------------------------------------------------------
+ * Function: print_evens
+ * --------------------------------------------------------------------------
+ *
+ * Description: Print even numbers up to a given number. If the number is too
+ *              large, print an error message. The function uses the
+ *              `even_or_blank` function to determine if a number is even or
+ *              too large. The function is responsible for freeing the memory
+ *              allocated by the `even_or_blank` function.
+ *
+ * Parameters:
+ *      highest: Highest number to print
+ *
+ * Returns: None
+ *
+ * -------------------------------------------------------------------------- */
 static void print_evens(int highest) {
   char *text = NULL;
+  char *err = NULL;
   int i = 0;
 
   for (i = 0; i <= highest; i++) {
-    text = even_or_blank(i);
+    text = even_or_blank(i, &err);
     if (text) {
       if (strlen(text) > 0) {
         printf("%s\n", text);
       }
       /* Trying to free a string literal -------------------------------------
 
-         The function even_or_blank() returns a string literal when the input
-         number is odd. The string literal is a constant string that is stored
-         on the stack and is in the read-only memory. Attempting to free a
-         string literal results in a crash.
+         The function even_or_blank() returns a reference to allocated memory
+         when the input number is odd, and a reference to a read-only memory
+         location when the number is even, or the number is too large. Trying
+         to free a read-only memory location will result in a error and a
+         program crash.
 
-         If we run this part of the code with a memory profiler (i.e., DrMemory)
-         we will see an error message like this:
+         If we run original part of this code with a memory profiler (i.e.
+         DrMemory) we will see an error message like this:
 
          ```
          Error #1: INVALID HEAP ARGUMENT to free ...
@@ -239,12 +287,35 @@ static void print_evens(int highest) {
 
          with a stack trace that points to the line where the free() function
          is called.
+
+         To fix this issue, we need to allocate memory for the returned string
+         when the number is even, or the number is too large. We can then free
+         the allocated memory after we are done with it.
       */
-      /* free(text); */
+      free(text);
+      text = NULL;
+    } else if (err) {
+      printf("Error: %s\n", err);
     }
   }
 }
 
+/* --------------------------------------------------------------------------
+ * Function: get_odds
+ * --------------------------------------------------------------------------
+ *
+ * Description: Return an array of odd numbers up to a given number. The
+ *              function returns pointer to allocated memory that stores the
+ *              odd numbers. It is up to the caller to free the memory when
+ *              done with it.
+ *
+ * Parameters:
+ *      highest: Highest number to print
+ *     num_odds: Pointer to store the number of odd numbers
+ *
+ * Returns: Array of odd numbers
+ *
+ * -------------------------------------------------------------------------- */
 static int *get_odds(int highest, long int *num_odds) {
   int *odds = NULL;
   long int i = 0;
@@ -264,6 +335,21 @@ static int *get_odds(int highest, long int *num_odds) {
   return odds;
 }
 
+/* --------------------------------------------------------------------------
+ * Function: show_odds
+ * --------------------------------------------------------------------------
+ *
+ * Description: Print odd numbers up to a given number. The function uses the
+ *              `get_odds` function to get the odd numbers. The function is
+ *              responsible for freeing the memory allocated by the
+ *              `get_odds` function.
+ *
+ * Parameters:
+ *      highest: Highest number to print
+ *
+ * Returns: None
+ *
+ * -------------------------------------------------------------------------- */
 static void show_odds(int highest) {
   int *odds = NULL;
   int i = 0;
@@ -274,10 +360,44 @@ static void show_odds(int highest) {
     for (i = 0; i < num_odds; i++) {
       printf("%d\n", odds[i]);
     }
+    /* Trynig to free invalid memory reference -------------------------------
+
+       The code here is trying to free something that is not a reference to
+       allocated memory. In particular case we are trying to free a variable
+       that stores integer value instead of a reference to allocated memory.
+       Microsoft's C compiler will raise an warning when trying to free a
+       non-pointer variable, even though the `num_odds` variable is casted to
+       a pointer type. E.g.:
+
+       ```
+       ... warning C4028: formal parameter 2 different from declaration
+       ... warning C4312: 'type cast': conversion from 'long' to 'void *' of
+           greater size
+       ```
+    */
+    /* free((void *) num_odds); */
     free(odds);
   }
 }
 
+/* --------------------------------------------------------------------------
+ * Function: splitter
+ * --------------------------------------------------------------------------
+ *
+ * Description: Split a string into two parts: prefix and suffix. The function
+ *              modifies the input string by replacing the first dash character
+ *              with a null terminator. The function returns the prefix and
+ *              suffix parts of the string. The caller is responsible for
+ *              freeing the memory allocated by the function.
+ *
+ * Parameters:
+ *      input: Input string to split
+ *     prefix: Pointer to store the prefix part of the string
+ *     suffix: Pointer to store the suffix part of the string
+ *
+ * Returns: None
+ *
+ * -------------------------------------------------------------------------- */
 static void splitter(char *input, char **prefix, char **suffix) {
   char *copied = NULL;
 
@@ -295,27 +415,92 @@ static void splitter(char *input, char **prefix, char **suffix) {
   }
 }
 
+/* --------------------------------------------------------------------------
+ * Function: print_and_free_ids
+ * --------------------------------------------------------------------------
+ *
+ * Description: Print and free the prefix and suffix parts of the identifiers.
+ *              The function prints the prefix and suffix parts of the
+ *              identifiers and frees the memory allocated by the `splitter`
+ *              function. The function is responsible for freeing the memory
+ *              allocated by the `splitter` function (this is a typical example
+ *              of a double free error, and a bad programming practice, since
+ *              the given function should not be responsible for freeing the
+ *              memory for wich it does not know if it is dynamically allocated
+ *              or not).
+ *
+ * Parameters:
+ *      alphas: Array of prefix parts of the identifiers
+ *       nums: Array of suffix parts of the identifiers
+ *   num_ids: Number of identifiers
+ *
+ * Returns: None
+ *
+ * -------------------------------------------------------------------------- */
 static void print_and_free_ids(char **alphas, char **nums, int num_ids) {
   int i = 0;
 
   for (i = 0; i < num_ids; i++) {
-    printf("ID %d: %s-%s\n", i, alphas[i], nums[i]);
+    printf("%s\t%s\n", alphas[i], nums[i]);
     free(alphas[i]);
-    free(nums[i]);
+    /* Trying to free a block of memory inside the already freed block --------
+
+       The code here is trying to free a block of memory that is already freed.
+       This is due `alphas` and `nums` arrays are parts of the same block of
+       memory that is allocated by the `splitter()` function. When we free the
+       `alphas` array, we are also freeing the `nums` array. If we try to free
+       the `nums` array after we have already freed the `alphas` array, this
+       will result in a memory error and a program crash. If we run this code
+       with a memory profiler (i.e. DrMemory) we will see an error message
+       like this:
+
+       ```
+       Error #1: INVALID HEAP ARGUMENT to free ...
+       ```
+
+       with a stack trace that points to the line where the free() function is
+       called.
+    */
+    /* free(nums[i]); */
   }
 
+  /* Trying to free the memory that is not dynamically allocated --------------
+
+     The code here is trying to free a block of memory that is not dynamically
+     allocated. The `alphas` and `nums` are arrays of strings on the stack,
+     created by the do_the_splits() function. When we try to free these arrays,
+     we will get a memory error and a program crash. If we run this code with a
+     memory profiler (i.e. DrMemory) we will see an error message like this:
+
+     ```
+     Error #1: INVALID HEAP ARGUMENT to free ...
+     ```
+
+     with a stack trace that points to the line where the free() function is
+     called.
+  */
+  /*
   free(alphas);
   free(nums);
+  */
 }
 
+/* --------------------------------------------------------------------------
+ * Function: do_the_splits
+ * --------------------------------------------------------------------------
+ *
+ * Description: Split the identifiers into prefix and suffix parts. The
+ *              function splits the identifiers into prefix and suffix parts
+ *              and prints them. The function is responsible for freeing the
+ *              memory allocated by the `splitter` function.
+ *
+ * Parameters: None
+ *
+ * Returns: None
+ *
+ * -------------------------------------------------------------------------- */
 static void do_the_splits() {
-  char *ids[] = {
-    "THX-1138",
-    "U-62",
-    "DS-9",
-    "FN-2187",
-    NULL
-  };
+  char *ids[] = {"THX-1138", "U-62", "DS-9", "FN-2187", NULL};
   const int num_ids = sizeof(ids) / sizeof(char *) - 1;
   char *alphas[4] = {};
   char *nums[4] = {};

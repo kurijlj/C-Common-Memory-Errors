@@ -67,6 +67,17 @@ To start using the code in this repository, follow these steps:
 
 ## Build Targets
 
+- **invalid_frees:** This code explores a common source of errors in C: freeing
+  memory that has already been freed. In particular, we'll look at the
+  following cases:
+  1. Trying to free a string literal
+  2. Trying to free invalid memory reference (i.e. ordinary variable)
+  3. Trying to free a block of memory inside the already freed block
+  4. Trying to free the memory that is not dynamically allocated
+     (i.e. stack memory)
+
+- **invalid_frees_exercise:** This code is a solution to the accompanying
+  exercise on invalid frees.
 - **uninitialized_values:** This code explores the reading from uninitialized
   memory. Specifically, we'll investigate what happens when you try to read
   from a pointer that points to a string that hasn't been assigned a value.
